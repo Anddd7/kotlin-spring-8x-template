@@ -73,4 +73,42 @@ internal class WithdrawServiceTest {
             )
         }
     }
+
+    @Test
+    fun `should successful withdraw when deduct amount is less than the balance`() {
+        val request = WithdrawRequest(
+            merchantAccountId = merchantAccount.id,
+            amount = 99,
+            currency = Currency.CHN_YUAN,
+            channel = PaymentMethod.WECHATPAY,
+        )
+
+        every { merchantAccountRepository.getById(any()) } returns merchantAccount
+        every { merchantAccountRepository.save(any()) } returnsArgument 0
+        every { withdrawRecordRepository.save(any()) } returnsArgument 0
+        every { mqClient.send(any()) } just runs
+
+        withdrawService.request(request)
+
+        verify {
+            merchantAccountRepository.getById(merchantAccount.id)
+            merchantAccountRepository.save(merchantAccount.copy(balance = merchantAccount.balance - request.amount))
+            withdrawRecordRepository.save(
+                WithdrawRecordEntity(
+                    merchantAccountId = request.merchantAccountId,
+                    amount = request.amount,
+                    currency = request.currency,
+                    channel = request.channel,
+                    status = WithdrawStatus.IN_PROGRESS
+                )
+            )
+            mqClient.send(
+                MqMessageDto(
+                    topic = MqMessageTopic.WITHDRAW,
+                    callback = "/merchant-account/balance/withdraw/0/confirmation",
+                    payload = request
+                )
+            )
+        }
+    }
 }
