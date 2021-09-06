@@ -1,7 +1,7 @@
 package com.github.anddd7.want2eat.infrastructure.repository
 
-import com.github.anddd7.want2eat.controller.Currency
-import com.github.anddd7.want2eat.controller.PaymentMethod
+import com.github.anddd7.want2eat.service.viewobject.Currency
+import com.github.anddd7.want2eat.service.viewobject.PaymentMethod
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

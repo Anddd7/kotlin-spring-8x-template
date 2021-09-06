@@ -1,7 +1,7 @@
 package com.github.anddd7.want2eat.infrastructure.repository
 
-import com.github.anddd7.want2eat.controller.Currency
-import com.github.anddd7.want2eat.controller.PaymentMethod
+import com.github.anddd7.want2eat.service.viewobject.Currency
+import com.github.anddd7.want2eat.service.viewobject.PaymentMethod
 import org.springframework.data.jpa.repository.JpaRepository
 import javax.persistence.Column
 import javax.persistence.Entity

@@ -1,6 +1,9 @@
 package com.github.anddd7.want2eat.controller
 
 import com.github.anddd7.want2eat.service.WithdrawService
+import com.github.anddd7.want2eat.service.viewobject.Currency
+import com.github.anddd7.want2eat.service.viewobject.PaymentMethod
+import com.github.anddd7.want2eat.service.viewobject.WithdrawRequest
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.Runs
 import io.mockk.every
