@@ -1,0 +1,31 @@
+<configuration>
+    <include resource="logback/console.xml"/>
+    <include resource="logback/logstash-event.xml"/>
+
+    <springProfile name="local,test">
+        <logger level="DEBUG" name="com.github.anddd7"/>
+
+        <root level="DEBUG">"
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="dev">
+
+        <logger level="DEBUG" name="com.github.anddd7"/>
+
+        <root level="INFO">"
+            <appender-ref ref="STASH"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="deploy">
+        <include resource="logback/logstash-event-tcp.xml"/>
+
+        <logger level="DEBUG" name="com.github.anddd7"/>
+
+        <root level="INFO">"
+            <appender-ref ref="TCP"/>
+        </root>
+    </springProfile>
+</configuration>
