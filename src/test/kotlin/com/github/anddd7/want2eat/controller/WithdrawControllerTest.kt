@@ -2,6 +2,7 @@ package com.github.anddd7.want2eat.controller
 
 import com.github.anddd7.want2eat.service.WithdrawService
 import com.github.anddd7.want2eat.service.viewobject.Currency
+import com.github.anddd7.want2eat.service.viewobject.InsufficientBalanceException
 import com.github.anddd7.want2eat.service.viewobject.PaymentMethod
 import com.github.anddd7.want2eat.service.viewobject.WithdrawRequest
 import com.ninjasquad.springmockk.MockkBean
@@ -48,6 +49,35 @@ internal class WithdrawControllerTest {
             """.trimIndent()
         }.andExpect {
             status { isOk() }
+        }
+    }
+
+    @Test
+    fun `should return 400 when the merchant's balance is insufficient`() {
+        val request = WithdrawRequest(
+            merchantAccountId = 10001L,
+            amount = 101,
+            currency = Currency.CHN_YUAN,
+            channel = PaymentMethod.WECHATPAY,
+        )
+
+        every { service.request(request) } throws InsufficientBalanceException()
+
+        mockMvc.post(url) {
+            contentType = MediaType.APPLICATION_JSON
+            content = """
+                {
+                   "merchantAccountId": ${request.merchantAccountId},
+                   "amount": ${request.amount},
+                   "currency": "${request.currency}",
+                   "channel": "${request.channel}"
+                }
+            """.trimIndent()
+        }.andExpect {
+            status { isBadRequest() }
+            content {
+                json("""{"message": "balance insufficient"}""")
+            }
         }
     }
 }
