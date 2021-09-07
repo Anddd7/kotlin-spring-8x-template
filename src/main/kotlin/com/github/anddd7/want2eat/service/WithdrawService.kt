@@ -11,6 +11,7 @@ import com.github.anddd7.want2eat.service.viewobject.InsufficientBalanceExceptio
 import com.github.anddd7.want2eat.service.viewobject.WithdrawRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 class WithdrawService(
@@ -44,4 +45,8 @@ class WithdrawService(
         channel,
         status = WithdrawStatus.IN_PROGRESS
     )
+
+    fun confirmation(merchantAccountId: Long, updatedAt: LocalDateTime) {
+        TODO("Not yet implemented")
+    }
 }

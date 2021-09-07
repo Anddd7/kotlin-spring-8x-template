@@ -3,8 +3,10 @@ package com.github.anddd7.want2eat.controller
 import com.github.anddd7.want2eat.service.WithdrawService
 import com.github.anddd7.want2eat.service.viewobject.ErrorResponse
 import com.github.anddd7.want2eat.service.viewobject.InsufficientBalanceException
+import com.github.anddd7.want2eat.service.viewobject.WithdrawConfirmation
 import com.github.anddd7.want2eat.service.viewobject.WithdrawRequest
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -24,5 +26,10 @@ class WithdrawController(
         } catch (e: InsufficientBalanceException) {
             ResponseEntity.badRequest().body(ErrorResponse(e.message))
         }
+    }
+
+    @PostMapping("/{withdrawRecordId}/confirmation")
+    fun withdrawConfirmation(@PathVariable withdrawRecordId: Long, @RequestBody body: WithdrawConfirmation) {
+        withdrawService.confirmation(withdrawRecordId, body.updatedAt)
     }
 }

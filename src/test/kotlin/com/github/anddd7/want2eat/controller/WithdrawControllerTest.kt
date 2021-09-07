@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
+import java.time.LocalDateTime
 
 @WebMvcTest(controllers = [WithdrawController::class])
 internal class WithdrawControllerTest {
@@ -78,6 +79,25 @@ internal class WithdrawControllerTest {
             content {
                 json("""{"message": "balance insufficient"}""")
             }
+        }
+    }
+
+    @Test
+    fun `should execute the confirmation with withdraw record id`() {
+        val withdrawRecordId = 1000000L
+        val updatedAt = LocalDateTime.of(2021, 9, 6, 12, 0, 0)
+
+        every { service.confirmation(withdrawRecordId, updatedAt) } just Runs
+
+        mockMvc.post("$url/$withdrawRecordId/confirmation") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """
+                {
+                   "updatedAt": "$updatedAt"
+                }
+            """.trimIndent()
+        }.andExpect {
+            status { isOk() }
         }
     }
 }
