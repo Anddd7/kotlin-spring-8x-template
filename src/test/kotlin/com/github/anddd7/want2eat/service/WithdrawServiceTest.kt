@@ -21,6 +21,7 @@ import io.mockk.verify
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.LocalDateTime
 
 internal class WithdrawServiceTest {
     private val merchantAccountRepository = mockk<MerchantAccountRepository>()
@@ -151,6 +152,34 @@ internal class WithdrawServiceTest {
         verify(inverse = true) {
             withdrawRecordRepository.save(any())
             mqClient.send(any())
+        }
+    }
+
+    @Test
+    fun `should update the withdraw status when execute confirmation`() {
+        val withdrawRecordId = 1000000L
+        val updatedAt = LocalDateTime.of(2021, 9, 6, 12, 0, 0)
+        val withdrawRecord = WithdrawRecordEntity(
+            merchantAccountId = merchantAccount.id,
+            amount = 100,
+            currency = Currency.CHN_YUAN,
+            channel = PaymentMethod.WECHATPAY,
+            status = WithdrawStatus.IN_PROGRESS,
+            id = withdrawRecordId,
+        )
+        every { withdrawRecordRepository.getById(any()) } returns withdrawRecord
+        every { withdrawRecordRepository.save(any()) } returns withdrawRecord
+
+        withdrawService.confirmation(withdrawRecordId, updatedAt)
+
+        verify {
+            withdrawRecordRepository.getById(withdrawRecordId)
+            withdrawRecordRepository.save(
+                withdrawRecord.copy(
+                    status = WithdrawStatus.COMPLETED,
+                    updatedAt = updatedAt
+                )
+            )
         }
     }
 }

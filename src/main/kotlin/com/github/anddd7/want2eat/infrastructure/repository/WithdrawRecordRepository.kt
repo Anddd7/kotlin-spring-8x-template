@@ -3,6 +3,7 @@ package com.github.anddd7.want2eat.infrastructure.repository
 import com.github.anddd7.want2eat.service.viewobject.Currency
 import com.github.anddd7.want2eat.service.viewobject.PaymentMethod
 import org.springframework.data.jpa.repository.JpaRepository
+import java.time.LocalDateTime
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.EnumType
@@ -34,6 +35,8 @@ data class WithdrawRecordEntity(
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     val status: WithdrawStatus,
+
+    val updatedAt: LocalDateTime? = null,
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,

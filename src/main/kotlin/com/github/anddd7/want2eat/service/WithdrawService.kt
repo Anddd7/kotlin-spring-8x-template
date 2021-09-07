@@ -43,10 +43,16 @@ class WithdrawService(
         amount,
         currency,
         channel,
-        status = WithdrawStatus.IN_PROGRESS
+        status = WithdrawStatus.IN_PROGRESS,
     )
 
-    fun confirmation(merchantAccountId: Long, updatedAt: LocalDateTime) {
-        TODO("Not yet implemented")
+    fun confirmation(withdrawRecordId: Long, updatedAt: LocalDateTime) {
+        val withdrawRecord = withdrawRecordRepository.getById(withdrawRecordId)
+        withdrawRecordRepository.save(
+            withdrawRecord.copy(
+                status = WithdrawStatus.COMPLETED,
+                updatedAt = updatedAt,
+            )
+        )
     }
 }
