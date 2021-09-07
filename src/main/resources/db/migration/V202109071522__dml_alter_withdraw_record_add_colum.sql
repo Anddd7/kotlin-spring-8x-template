@@ -1,0 +1,2 @@
+ALTER TABLE withdraw_record
+    ADD COLUMN updated_at TIMESTAMP WITHOUT TIME ZONE;

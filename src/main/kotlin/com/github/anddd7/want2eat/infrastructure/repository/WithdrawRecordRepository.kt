@@ -36,6 +36,7 @@ data class WithdrawRecordEntity(
     @Enumerated(EnumType.STRING)
     val status: WithdrawStatus,
 
+    @Column(name = "updated_at")
     val updatedAt: LocalDateTime? = null,
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
