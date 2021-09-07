@@ -7,6 +7,7 @@ import com.github.anddd7.want2eat.infrastructure.repository.MerchantAccountRepos
 import com.github.anddd7.want2eat.infrastructure.repository.WithdrawRecordEntity
 import com.github.anddd7.want2eat.infrastructure.repository.WithdrawRecordRepository
 import com.github.anddd7.want2eat.infrastructure.repository.WithdrawStatus
+import com.github.anddd7.want2eat.service.viewobject.InsufficientBalanceException
 import com.github.anddd7.want2eat.service.viewobject.WithdrawRequest
 import org.springframework.stereotype.Service
 
@@ -18,6 +19,8 @@ class WithdrawService(
 ) {
     fun request(request: WithdrawRequest) {
         val merchantAccount = merchantAccountRepository.getById(request.merchantAccountId)
+        if (merchantAccount.balance < request.amount) throw InsufficientBalanceException()
+
         merchantAccountRepository.save(merchantAccount.copy(balance = merchantAccount.balance - request.amount))
         val withdrawRecord = withdrawRecordRepository.save(request.buildRecord())
 

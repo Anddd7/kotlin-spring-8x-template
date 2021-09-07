@@ -9,6 +9,7 @@ import com.github.anddd7.want2eat.infrastructure.repository.WithdrawRecordEntity
 import com.github.anddd7.want2eat.infrastructure.repository.WithdrawRecordRepository
 import com.github.anddd7.want2eat.infrastructure.repository.WithdrawStatus
 import com.github.anddd7.want2eat.service.viewobject.Currency
+import com.github.anddd7.want2eat.service.viewobject.InsufficientBalanceException
 import com.github.anddd7.want2eat.service.viewobject.PaymentMethod
 import com.github.anddd7.want2eat.service.viewobject.WithdrawRequest
 import io.mockk.clearAllMocks
@@ -19,6 +20,7 @@ import io.mockk.runs
 import io.mockk.verify
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 internal class WithdrawServiceTest {
     private val merchantAccountRepository = mockk<MerchantAccountRepository>()
@@ -109,6 +111,32 @@ internal class WithdrawServiceTest {
                     payload = request
                 )
             )
+        }
+    }
+
+    @Test
+    fun `should throw exception when deduct amount is more than the balance`() {
+        val request = WithdrawRequest(
+            merchantAccountId = merchantAccount.id,
+            amount = 101,
+            currency = Currency.CHN_YUAN,
+            channel = PaymentMethod.WECHATPAY,
+        )
+
+        every { merchantAccountRepository.getById(any()) } returns merchantAccount
+
+        assertThrows<InsufficientBalanceException> {
+            withdrawService.request(request)
+        }
+
+        verify {
+            merchantAccountRepository.getById(merchantAccount.id)
+        }
+
+        verify(inverse = true) {
+            merchantAccountRepository.save(any())
+            withdrawRecordRepository.save(any())
+            mqClient.send(any())
         }
     }
 }
