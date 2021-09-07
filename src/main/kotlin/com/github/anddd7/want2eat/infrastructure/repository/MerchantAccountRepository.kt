@@ -8,7 +8,9 @@ import javax.persistence.Id
 import javax.persistence.Table
 
 @Repository
-interface MerchantAccountRepository : JpaRepository<MerchantAccountEntity, Long>
+interface MerchantAccountRepository : JpaRepository<MerchantAccountEntity, Long> {
+    fun deductBalance(id: Long, deductAmount: Int): Int
+}
 
 @Entity
 @Table(name = "merchant_account")

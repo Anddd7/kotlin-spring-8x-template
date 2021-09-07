@@ -38,17 +38,19 @@ internal class WithdrawServiceTest {
         clearAllMocks()
     }
 
+    private val tempRequest = WithdrawRequest(
+        merchantAccountId = merchantAccount.id,
+        amount = 100,
+        currency = Currency.CHN_YUAN,
+        channel = PaymentMethod.WECHATPAY,
+    )
+
     @Test
     fun `should successful withdraw the amount, update balance and create withdraw record`() {
-        val request = WithdrawRequest(
-            merchantAccountId = merchantAccount.id,
-            amount = 100,
-            currency = Currency.CHN_YUAN,
-            channel = PaymentMethod.WECHATPAY,
-        )
+        val request = tempRequest.copy(amount = 100)
 
         every { merchantAccountRepository.getById(any()) } returns merchantAccount
-        every { merchantAccountRepository.save(any()) } returnsArgument 0
+        every { merchantAccountRepository.deductBalance(any(), any()) } returns 1
         every { withdrawRecordRepository.save(any()) } returnsArgument 0
         every { mqClient.send(any()) } just runs
 
@@ -56,7 +58,7 @@ internal class WithdrawServiceTest {
 
         verify {
             merchantAccountRepository.getById(merchantAccount.id)
-            merchantAccountRepository.save(merchantAccount.copy(balance = merchantAccount.balance - request.amount))
+            merchantAccountRepository.deductBalance(merchantAccount.id, request.amount)
             withdrawRecordRepository.save(
                 WithdrawRecordEntity(
                     merchantAccountId = request.merchantAccountId,
@@ -78,15 +80,10 @@ internal class WithdrawServiceTest {
 
     @Test
     fun `should successful withdraw when deduct amount is less than the balance`() {
-        val request = WithdrawRequest(
-            merchantAccountId = merchantAccount.id,
-            amount = 99,
-            currency = Currency.CHN_YUAN,
-            channel = PaymentMethod.WECHATPAY,
-        )
+        val request = tempRequest.copy(amount = 99)
 
         every { merchantAccountRepository.getById(any()) } returns merchantAccount
-        every { merchantAccountRepository.save(any()) } returnsArgument 0
+        every { merchantAccountRepository.deductBalance(any(), any()) } returns 1
         every { withdrawRecordRepository.save(any()) } returnsArgument 0
         every { mqClient.send(any()) } just runs
 
@@ -94,7 +91,7 @@ internal class WithdrawServiceTest {
 
         verify {
             merchantAccountRepository.getById(merchantAccount.id)
-            merchantAccountRepository.save(merchantAccount.copy(balance = merchantAccount.balance - request.amount))
+            merchantAccountRepository.deductBalance(merchantAccount.id, request.amount)
             withdrawRecordRepository.save(
                 WithdrawRecordEntity(
                     merchantAccountId = request.merchantAccountId,
@@ -116,12 +113,7 @@ internal class WithdrawServiceTest {
 
     @Test
     fun `should throw exception when deduct amount is more than the balance`() {
-        val request = WithdrawRequest(
-            merchantAccountId = merchantAccount.id,
-            amount = 101,
-            currency = Currency.CHN_YUAN,
-            channel = PaymentMethod.WECHATPAY,
-        )
+        val request = tempRequest.copy(amount = 101)
 
         every { merchantAccountRepository.getById(any()) } returns merchantAccount
 
@@ -134,7 +126,29 @@ internal class WithdrawServiceTest {
         }
 
         verify(inverse = true) {
-            merchantAccountRepository.save(any())
+            merchantAccountRepository.deductBalance(any(), any())
+            withdrawRecordRepository.save(any())
+            mqClient.send(any())
+        }
+    }
+
+    @Test
+    fun `should throw exception when deduct amount failed due to db conflict`() {
+        val request = tempRequest.copy(amount = 100)
+
+        every { merchantAccountRepository.getById(any()) } returns merchantAccount
+        every { merchantAccountRepository.deductBalance(any(), any()) } returns 0
+
+        assertThrows<InsufficientBalanceException> {
+            withdrawService.request(request)
+        }
+
+        verify {
+            merchantAccountRepository.getById(merchantAccount.id)
+            merchantAccountRepository.deductBalance(merchantAccount.id, request.amount)
+        }
+
+        verify(inverse = true) {
             withdrawRecordRepository.save(any())
             mqClient.send(any())
         }
