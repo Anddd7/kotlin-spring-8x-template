@@ -2,19 +2,40 @@ package com.github.anddd7.want2eat.infrastructure.repository
 
 import com.github.anddd7.want2eat.controller.Currency
 import com.github.anddd7.want2eat.controller.PaymentMethod
-import org.springframework.stereotype.Repository
+import org.springframework.data.jpa.repository.JpaRepository
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.EnumType
+import javax.persistence.Enumerated
+import javax.persistence.GeneratedValue
+import javax.persistence.GenerationType
+import javax.persistence.Id
+import javax.persistence.Table
 
-@Repository
-interface WithdrawRecordRepository {
-    fun save(entity: WithdrawRecordEntity)
-}
+interface WithdrawRecordRepository : JpaRepository<WithdrawRecordEntity, Long>
 
+@Entity
+@Table(name = "withdraw_record")
 data class WithdrawRecordEntity(
+    @Column(name = "merchantAccountId")
     val merchantAccountId: Long,
+
+    @Column(name = "amount")
     val amount: Int,
+
+    @Column(name = "currency")
+    @Enumerated(EnumType.STRING)
     val currency: Currency,
+
+    @Column(name = "channel")
+    @Enumerated(EnumType.STRING)
     val channel: PaymentMethod,
+
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     val status: WithdrawStatus,
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 )
 
